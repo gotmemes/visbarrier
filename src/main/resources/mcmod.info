@@ -1,0 +1,16 @@
+[
+{
+  "modid": "visbarrier",
+  "name": "Visible Barriers",
+  "description": "Makes barriers visible",
+  "version": "1.0",
+  "mcversion": "1.8.9",
+  "url": "https://github.com/gotmemes/visbarrier",
+  "updateUrl": "",
+  "authorList": ["GotMemes"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
