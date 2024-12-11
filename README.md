@@ -20,5 +20,5 @@ For performance, which can be modified:
 - `4` chunk range
 - some culling implemented
 
-#### little note
+## little note
 made this mod with claude (wrote pretty little manually lol)
