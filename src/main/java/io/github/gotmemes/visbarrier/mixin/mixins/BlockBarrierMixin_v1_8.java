@@ -1,7 +1,7 @@
-package io.github.olvend.visiblebarriers.mixin.mixins;
+package io.github.gotmemes.visbarrier.mixin.mixins;
 
-import io.github.olvend.visiblebarriers.VisibleBarriers;
-import io.github.olvend.visiblebarriers.mixin.SupportedVersions;
+import io.github.gotmemes.visbarrier.Visbarrier;
+import io.github.gotmemes.visbarrier.mixin.SupportedVersions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBarrier;
 import net.minecraft.util.BlockPos;
@@ -19,7 +19,7 @@ public abstract class BlockBarrierMixin_v1_8 extends Block {
 
     @Override
     public int getRenderType() {
-        return VisibleBarriers.isVisible ? 3 : -1;
+        return Visbarrier.isVisible ? 3 : -1;
     }
 
     @Override

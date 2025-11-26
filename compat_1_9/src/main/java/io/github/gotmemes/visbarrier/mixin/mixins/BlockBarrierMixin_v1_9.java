@@ -1,7 +1,7 @@
-package io.github.olvend.visiblebarriers.mixin.mixins;
+package io.github.gotmemes.visbarrier.mixin.mixins;
 
-import io.github.olvend.visiblebarriers.VisibleBarriers;
-import io.github.olvend.visiblebarriers.mixin.SupportedVersions;
+import io.github.gotmemes.visbarrier.Visbarrier;
+import io.github.gotmemes.visbarrier.mixin.SupportedVersions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBarrier;
 import net.minecraft.block.state.IBlockState;
@@ -21,7 +21,7 @@ public abstract class BlockBarrierMixin_v1_9 extends Block {
 
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state) {
-        return VisibleBarriers.isVisible ? EnumBlockRenderType.MODEL : EnumBlockRenderType.INVISIBLE;
+        return Visbarrier.isVisible ? EnumBlockRenderType.MODEL : EnumBlockRenderType.INVISIBLE;
     }
 
     @Override

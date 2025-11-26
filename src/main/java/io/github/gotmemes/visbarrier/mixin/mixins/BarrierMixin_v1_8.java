@@ -1,7 +1,7 @@
-package io.github.olvend.visiblebarriers.mixin.mixins;
+package io.github.gotmemes.visbarrier.mixin.mixins;
 
-import io.github.olvend.visiblebarriers.VisibleBarriers;
-import io.github.olvend.visiblebarriers.mixin.SupportedVersions;
+import io.github.gotmemes.visbarrier.Visbarrier;
+import io.github.gotmemes.visbarrier.mixin.SupportedVersions;
 import net.minecraft.client.particle.Barrier;
 import net.minecraft.client.particle.EntityFX;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +18,7 @@ public class BarrierMixin_v1_8 extends EntityFX {
 
     @Inject(method = "Lnet/minecraft/client/particle/Barrier;func_180434_a(Lnet/minecraft/client/renderer/WorldRenderer;Lnet/minecraft/entity/Entity;FFFFFF)V", at = @At("HEAD"), cancellable = true, remap = false)
     public void removeParticle(CallbackInfo ci) {
-        if (VisibleBarriers.isVisible) {
+        if (Visbarrier.isVisible) {
             this.particleMaxAge = Integer.MIN_VALUE;
             ci.cancel();
         }

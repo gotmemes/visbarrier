@@ -4,8 +4,8 @@
     "name": "${mod_name}",
     "description": "Toggle barrier visibility through a keybind.",
     "version": "${mod_version}",
-    "url": "https://modrinth.com/mod/visible-barriers",
-    "authorList": ["Diabet"],
+    "url": "https://modrinth.com/mod/visbarrier",
+    "authorList": ["GotMemes"],
     "logoFile": "logo.png"
   }
 ]

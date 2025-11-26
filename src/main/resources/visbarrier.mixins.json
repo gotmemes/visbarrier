@@ -2,9 +2,9 @@
   "required": true,
   "minVersion": "0.7",
   "compatibilityLevel": "JAVA_8",
-  "package": "io.github.olvend.visiblebarriers.mixin.mixins",
-  "refmap": "visiblebarriers.refmap.json",
-  "plugin": "io.github.olvend.visiblebarriers.mixin.VersionedMixinPlugin",
+  "package": "io.github.gotmemes.visbarrier.mixin.mixins",
+  "refmap": "visbarrier.refmap.json",
+  "plugin": "io.github.gotmemes.visbarrier.mixin.VersionedMixinPlugin",
   "client": [
     "BarrierMixin_v1_8",
     "BarrierMixin_v1_9",

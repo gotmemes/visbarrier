@@ -1,4 +1,4 @@
-package io.github.olvend.visiblebarriers;
+package io.github.gotmemes.visbarrier;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -11,13 +11,13 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import org.lwjgl.input.Keyboard;
 
 @Mod(
-        modid = VisibleBarriers.MOD_ID,
-        name = VisibleBarriers.MOD_NAME,
-        version = VisibleBarriers.MOD_VERSION,
+        modid = Visbarrier.MOD_ID,
+        name = Visbarrier.MOD_NAME,
+        version = Visbarrier.MOD_VERSION,
         acceptedMinecraftVersions = "@ACCEPTED_MINECRAFT_VERSIONS@",
         clientSideOnly = true
 )
-public class VisibleBarriers {
+public class Visbarrier {
     public static final String MOD_ID = "@MOD_ID@";
     public static final String MOD_NAME = "@MOD_NAME@";
     public static final String MOD_VERSION = "@MOD_VERSION@";
@@ -27,7 +27,7 @@ public class VisibleBarriers {
     private final KeyBinding toggleKey = new KeyBinding(
             "key.toggle_visibility",
             Keyboard.KEY_B,
-            "key.category.visiblebarriers"
+            "key.category.visbarrier"
     );
 
     private boolean wasPressed = false;
@@ -41,7 +41,7 @@ public class VisibleBarriers {
     @SubscribeEvent
     public void onKeyInput(InputEvent event) {
         if (this.toggleKey.isKeyDown() && !this.wasPressed) {
-            VisibleBarriers.isVisible = !VisibleBarriers.isVisible;
+            Visbarrier.isVisible = !Visbarrier.isVisible;
             Minecraft.getMinecraft().renderGlobal.loadRenderers();
         }
         this.wasPressed = this.toggleKey.isKeyDown();
