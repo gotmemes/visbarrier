@@ -1,4 +1,4 @@
-package io.github.olvend.visiblebarriers.mixin;
+package io.github.gotmemes.visbarrier.mixin;
 
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.Loader;

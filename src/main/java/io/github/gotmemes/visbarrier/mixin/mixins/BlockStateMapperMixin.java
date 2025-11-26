@@ -1,4 +1,4 @@
-package io.github.olvend.visiblebarriers.mixin.mixins;
+package io.github.gotmemes.visbarrier.mixin.mixins;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;

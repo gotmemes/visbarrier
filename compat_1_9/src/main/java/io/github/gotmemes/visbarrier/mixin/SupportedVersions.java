@@ -1,4 +1,4 @@
-package io.github.olvend.visiblebarriers.mixin;
+package io.github.gotmemes.visbarrier.mixin;
 
 //This is a dummy annotation
 public @interface SupportedVersions {

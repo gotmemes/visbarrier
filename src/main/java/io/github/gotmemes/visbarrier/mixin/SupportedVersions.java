@@ -1,4 +1,4 @@
-package io.github.olvend.visiblebarriers.mixin;
+package io.github.gotmemes.visbarrier.mixin;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
