@@ -53,7 +53,7 @@ public class Visbarrier {
 
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.theWorld != null && mc.thePlayer != null) {
-            markChunksForRerender(mc);
+            markChunksForRenderUpdate(mc);
         }
 
         if (mc.thePlayer != null) {
@@ -64,21 +64,14 @@ public class Visbarrier {
         }
     }
 
-    private void markChunksForRerender(Minecraft mc) {
+    private void markChunksForRenderUpdate(Minecraft mc) {
         int renderDistance = mc.gameSettings.renderDistanceChunks;
         int playerChunkX = mc.thePlayer.chunkCoordX;
         int playerChunkZ = mc.thePlayer.chunkCoordZ;
 
-        for (int x = -renderDistance; x <= renderDistance; x++) {
-            for (int z = -renderDistance; z <= renderDistance; z++) {
-                int chunkX = playerChunkX + x;
-                int chunkZ = playerChunkZ + z;
-
-                mc.theWorld.markBlockRangeForRenderUpdate(
-                    chunkX * 16, 0, chunkZ * 16,
-                    chunkX * 16 + 15, 255, chunkZ * 16 + 15
-                );
-            }
-        }
+        mc.theWorld.markBlockRangeForRenderUpdate(
+            (playerChunkX - renderDistance) * 16, 0, (playerChunkZ - renderDistance) * 16,
+            (playerChunkX + renderDistance) * 16 + 15, 255, (playerChunkZ + renderDistance) * 16 + 15
+        );
     }
 }
