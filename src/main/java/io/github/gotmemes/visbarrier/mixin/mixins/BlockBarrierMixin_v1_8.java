@@ -19,7 +19,7 @@ public abstract class BlockBarrierMixin_v1_8 extends Block {
 
     @Override
     public int getRenderType() {
-        return Visbarrier.isVisible ? 3 : -1;
+        return Visbarrier.barriersVisible ? 3 : -1;
     }
 
     @Override
