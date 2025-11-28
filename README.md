@@ -33,3 +33,8 @@ Create resource packs where you can change texture and models:
 - **Model**: `assets/minecraft/models/block/barrier.json`
 
 Also, works with Optifine's connected textures
+
+---
+
+## Credits
+v2 is originally forked from [Diabet/olvend's barrier mod](https://github.com/olvend/VisibleBarriers) (MIT License)
