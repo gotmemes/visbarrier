@@ -43,7 +43,6 @@ repositories {
 }
 
 dependencies {
-    embed project(':compat_1_9')
     embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         transitive = false
     }
@@ -67,7 +66,7 @@ tasks.withType(JavaCompile) {
 }
 
 jar {
-    dependsOn configurations.embed, ':compat_1_9:build'
+    dependsOn configurations.embed
 
     manifest.attributes(
             'TweakOrder': 0,
