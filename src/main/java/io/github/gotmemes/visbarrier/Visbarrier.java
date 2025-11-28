@@ -27,7 +27,7 @@ public class Visbarrier {
     public static boolean barriersVisible = false;
 
     private final KeyBinding toggleBarriersKey = new KeyBinding(
-            "key.toggle_visibility",
+            "key.visbarrier.toggle",
             Keyboard.KEY_B,
             "key.category.visbarrier"
     );
