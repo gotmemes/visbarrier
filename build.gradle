@@ -27,6 +27,11 @@ minecraft {
     ['mod_id', 'mod_name', 'mod_version', 'accepted_minecraft_versions'].each { property ->
         replace "@${property.toUpperCase()}@", project.hasProperty(property) ? project[property] : null
     }
+
+    clientRunArgs += [
+            '--tweakClass', 'org.spongepowered.asm.launch.MixinTweaker',
+            '--mixin', "${project.mod_id}.mixins.json"
+    ]
 }
 
 mixin {
