@@ -24,33 +24,39 @@ public class Visbarrier {
     public static final String MOD_NAME = "@MOD_NAME@";
     public static final String MOD_VERSION = "@MOD_VERSION@";
 
-    public static boolean isVisible = false;
+    public static boolean barriersVisible = false;
 
-    private final KeyBinding toggleKey = new KeyBinding(
+    private final KeyBinding toggleBarriersKey = new KeyBinding(
             "key.toggle_visibility",
             Keyboard.KEY_B,
             "key.category.visbarrier"
     );
 
-    private boolean wasPressed = false;
+    private boolean keyWasPressed = false;
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         FMLCommonHandler.instance().bus().register(this);
-        ClientRegistry.registerKeyBinding(this.toggleKey);
+        ClientRegistry.registerKeyBinding(this.toggleBarriersKey);
     }
 
     @SubscribeEvent
     public void onKeyInput(InputEvent event) {
-        if (this.toggleKey.isKeyDown() && !this.wasPressed) {
-            Visbarrier.isVisible = !Visbarrier.isVisible;
-            Minecraft.getMinecraft().renderGlobal.loadRenderers();
+        if (this.toggleBarriersKey.isKeyDown() && !this.keyWasPressed) {
+            toggleBarriers();
         }
-        this.wasPressed = this.toggleKey.isKeyDown();
-        
+        this.keyWasPressed = this.toggleBarriersKey.isKeyDown();
     }
 
     private void toggleBarriers() {
-        
+        barriersVisible = !barriersVisible;
+        Minecraft.getMinecraft().renderGlobal.loadRenderers();
+
+        if (Minecraft.getMinecraft().thePlayer != null) {
+            Minecraft.getMinecraft().thePlayer.addChatMessage(
+                new ChatComponentText(EnumChatFormatting.RED + "Barrier visibility: " +
+                    (barriersVisible ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.WHITE + "OFF"))
+            );
+        }
     }
 }
