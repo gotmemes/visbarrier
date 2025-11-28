@@ -7,11 +7,7 @@
   "plugin": "io.github.gotmemes.visbarrier.mixin.VersionedMixinPlugin",
   "client": [
     "BarrierMixin_v1_8",
-    "BarrierMixin_v1_9",
-    "BarrierMixin_v1_9_4",
-    "BarrierMixin_v1_12",
     "BlockBarrierMixin_v1_8",
-    "BlockBarrierMixin_v1_9",
     "BlockStateMapperMixin"
   ],
   "injectors": {

@@ -2,6 +2,8 @@ package io.github.gotmemes.visbarrier;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
@@ -45,5 +47,10 @@ public class Visbarrier {
             Minecraft.getMinecraft().renderGlobal.loadRenderers();
         }
         this.wasPressed = this.toggleKey.isKeyDown();
+        
+    }
+
+    private void toggleBarriers() {
+        
     }
 }
