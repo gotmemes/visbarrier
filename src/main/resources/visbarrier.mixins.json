@@ -8,6 +8,7 @@
   "client": [
     "BarrierMixin_v1_8",
     "BlockBarrierMixin_v1_8",
+    "BlockModelRendererMixin",
     "BlockStateMapperMixin"
   ],
   "injectors": {
