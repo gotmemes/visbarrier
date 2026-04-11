@@ -3,6 +3,7 @@ package io.github.gotmemes.visbarrier;
 import io.github.gotmemes.visbarrier.command.VisbarrierCommand;
 import io.github.gotmemes.visbarrier.ctm.CTMEventHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -30,6 +31,7 @@ public class Visbarrier {
 
     public static boolean barriersVisible = false;
     public static boolean connectedTextures = true;
+    public static boolean keybindNotifications = true;
 
     private final KeyBinding toggleBarriersKey = new KeyBinding(
             "key.visbarrier.toggle",
@@ -63,10 +65,10 @@ public class Visbarrier {
             markChunksForRenderUpdate(mc);
         }
 
-        if (mc.thePlayer != null) {
+        if (keybindNotifications && mc.thePlayer != null) {
             mc.thePlayer.addChatMessage(
-                new ChatComponentText(EnumChatFormatting.RED + "Barrier visibility: " +
-                    (barriersVisible ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.WHITE + "OFF"))
+                new ChatComponentText(EnumChatFormatting.RED + I18n.format("message.visbarrier.barriervisibility") + ": " +
+                    (barriersVisible ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on") : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off")))
             );
         }
     }
