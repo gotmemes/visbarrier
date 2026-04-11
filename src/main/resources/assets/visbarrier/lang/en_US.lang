@@ -1,2 +1,7 @@
 key.category.visbarrier=Visbarrier
 key.visbarrier.toggle=Toggle Barrier Visibility
+message.visbarrier.barriervisibility=Barrier visibility
+message.visbarrier.connectedtextures=Connected textures
+message.visbarrier.on=ON
+message.visbarrier.off=OFF
+message.visbarrier.keybindnotifications=Keybind notifications

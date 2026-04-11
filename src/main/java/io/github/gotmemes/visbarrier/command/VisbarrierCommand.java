@@ -2,6 +2,7 @@ package io.github.gotmemes.visbarrier.command;
 
 import io.github.gotmemes.visbarrier.Visbarrier;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.BlockPos;
@@ -16,15 +17,22 @@ public class VisbarrierCommand extends CommandBase {
     @Override
     public String getCommandName() { return "visbarrier"; }
 
+    private static final String SUBCMD_CONNECT = "connect";
+    private static final String SUBCMD_CT      = "ct";
+    private static final String SUBCMD_NOTIFY  = "notify";
+    private static final String SUBCMD_N       = "n";
+
     @Override
-    public String getCommandUsage(ICommandSender sender) { return "/visbarrier connect"; }
+    public String getCommandUsage(ICommandSender sender) {
+        return "/visbarrier " + SUBCMD_CONNECT + " (" + SUBCMD_CT + ") | " + SUBCMD_NOTIFY + " (" + SUBCMD_N + ")";
+    }
 
     @Override
     public int getRequiredPermissionLevel() { return 0; }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (args.length == 1 && args[0].equalsIgnoreCase("connect")) {
+        if (args.length == 1 && (args[0].equalsIgnoreCase(SUBCMD_CONNECT) || args[0].equalsIgnoreCase(SUBCMD_CT))) {
             Visbarrier.connectedTextures = !Visbarrier.connectedTextures;
 
             Minecraft mc = Minecraft.getMinecraft();
@@ -40,10 +48,22 @@ public class VisbarrierCommand extends CommandBase {
 
             if (mc.thePlayer != null) {
                 mc.thePlayer.addChatMessage(new ChatComponentText(
-                    EnumChatFormatting.RED + "Connected textures: " +
+                    EnumChatFormatting.RED + I18n.format("message.visbarrier.connectedtextures") + ": " +
                     (Visbarrier.connectedTextures
-                        ? EnumChatFormatting.GREEN + "ON"
-                        : EnumChatFormatting.WHITE + "OFF")
+                        ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
+                        : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))
+                ));
+            }
+        } else if (args.length == 1 && (args[0].equalsIgnoreCase(SUBCMD_NOTIFY) || args[0].equalsIgnoreCase(SUBCMD_N))) {
+            Visbarrier.keybindNotifications = !Visbarrier.keybindNotifications;
+
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.thePlayer != null) {
+                mc.thePlayer.addChatMessage(new ChatComponentText(
+                    EnumChatFormatting.RED + I18n.format("message.visbarrier.keybindnotifications") + ": " +
+                    (Visbarrier.keybindNotifications
+                        ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
+                        : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))
                 ));
             }
         } else {
@@ -55,6 +75,6 @@ public class VisbarrierCommand extends CommandBase {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
-        return args.length == 1 ? Arrays.asList("connect") : null;
+        return args.length == 1 ? Arrays.asList(SUBCMD_CONNECT, SUBCMD_CT, SUBCMD_NOTIFY, SUBCMD_N) : null;
     }
 }
