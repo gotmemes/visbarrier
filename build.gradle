@@ -48,6 +48,9 @@ repositories {
 }
 
 dependencies {
+    embed project(':compat_1_9')
+    embed project(':compat_1_11')
+    embed project(':compat_1_12')
     embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         transitive = false
     }
@@ -86,7 +89,7 @@ jar {
     )
 
     from {
-        configurations.embed.collect { zipTree(it) }
+        configurations.embed.collect { it.isDirectory() ? fileTree(it) : zipTree(it) }
     } {
         exclude 'META-INF/*', 'LICENSE.txt', 'dummyThing'
     }
