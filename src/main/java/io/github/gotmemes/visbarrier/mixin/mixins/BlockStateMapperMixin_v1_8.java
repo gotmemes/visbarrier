@@ -1,5 +1,6 @@
 package io.github.gotmemes.visbarrier.mixin.mixins;
 
+import io.github.gotmemes.visbarrier.mixin.SupportedVersions;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Set;
 
 @Mixin(net.minecraft.client.renderer.block.statemap.BlockStateMapper.class)
-public class BlockStateMapperMixin {
+@SupportedVersions("[1.8,1.9)")
+public class BlockStateMapperMixin_v1_8 {
     @Shadow private Set<Block> setBuiltInBlocks;
 
     @Inject(method = "registerBuiltInBlocks", at = @At("TAIL"))

@@ -1,6 +1,6 @@
-package io.github.gotmemes.visbarrier.command;
+package io.github.gotmemes.visbarrier.compat.v1_8;
 
-import io.github.gotmemes.visbarrier.Visbarrier;
+import io.github.gotmemes.visbarrier.VisbarrierState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandBase;
@@ -33,35 +33,29 @@ public class VisbarrierCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length == 1 && (args[0].equalsIgnoreCase(SUBCMD_CONNECT) || args[0].equalsIgnoreCase(SUBCMD_CT))) {
-            Visbarrier.connectedTextures = !Visbarrier.connectedTextures;
+            VisbarrierState.connectedTextures = !VisbarrierState.connectedTextures;
 
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.theWorld != null && mc.thePlayer != null) {
-                int d = mc.gameSettings.renderDistanceChunks;
-                int cx = mc.thePlayer.chunkCoordX;
-                int cz = mc.thePlayer.chunkCoordZ;
-                mc.theWorld.markBlockRangeForRenderUpdate(
-                    (cx - d) * 16, 0, (cz - d) * 16,
-                    (cx + d) * 16 + 15, 255, (cz + d) * 16 + 15
-                );
+                Compat_v1_8.markChunks(mc);
             }
 
             if (mc.thePlayer != null) {
                 mc.thePlayer.addChatMessage(new ChatComponentText(
                     EnumChatFormatting.RED + I18n.format("message.visbarrier.connectedtextures") + ": " +
-                    (Visbarrier.connectedTextures
+                    (VisbarrierState.connectedTextures
                         ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
                         : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))
                 ));
             }
         } else if (args.length == 1 && (args[0].equalsIgnoreCase(SUBCMD_NOTIFY) || args[0].equalsIgnoreCase(SUBCMD_N))) {
-            Visbarrier.keybindNotifications = !Visbarrier.keybindNotifications;
+            VisbarrierState.keybindNotifications = !VisbarrierState.keybindNotifications;
 
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.thePlayer != null) {
                 mc.thePlayer.addChatMessage(new ChatComponentText(
                     EnumChatFormatting.RED + I18n.format("message.visbarrier.keybindnotifications") + ": " +
-                    (Visbarrier.keybindNotifications
+                    (VisbarrierState.keybindNotifications
                         ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
                         : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))
                 ));

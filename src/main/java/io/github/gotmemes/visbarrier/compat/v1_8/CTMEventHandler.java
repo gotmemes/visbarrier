@@ -1,4 +1,4 @@
-package io.github.gotmemes.visbarrier.ctm;
+package io.github.gotmemes.visbarrier.compat.v1_8;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;

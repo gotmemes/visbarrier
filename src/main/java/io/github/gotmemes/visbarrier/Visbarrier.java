@@ -1,16 +1,10 @@
 package io.github.gotmemes.visbarrier;
 
-import io.github.gotmemes.visbarrier.command.VisbarrierCommand;
-import io.github.gotmemes.visbarrier.ctm.CTMEventHandler;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
+import io.github.gotmemes.visbarrier.compat.ICompat;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.ClientCommandHandler;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -25,13 +19,11 @@ import org.lwjgl.input.Keyboard;
         clientSideOnly = true
 )
 public class Visbarrier {
-    public static final String MOD_ID = "@MOD_ID@";
-    public static final String MOD_NAME = "@MOD_NAME@";
+    public static final String MOD_ID      = "@MOD_ID@";
+    public static final String MOD_NAME    = "@MOD_NAME@";
     public static final String MOD_VERSION = "@MOD_VERSION@";
 
-    public static boolean barriersVisible = false;
-    public static boolean connectedTextures = true;
-    public static boolean keybindNotifications = true;
+    private static ICompat compat;
 
     private final KeyBinding toggleBarriersKey = new KeyBinding(
             "key.visbarrier.toggle",
@@ -45,42 +37,42 @@ public class Visbarrier {
     public void init(FMLInitializationEvent event) {
         FMLCommonHandler.instance().bus().register(this);
         ClientRegistry.registerKeyBinding(this.toggleBarriersKey);
-        ClientCommandHandler.instance.registerCommand(new VisbarrierCommand());
-        MinecraftForge.EVENT_BUS.register(new CTMEventHandler());
+
+        String mcVersion = Loader.instance().getMinecraftModContainer().getVersion();
+        compat = loadCompat(mcVersion);
+        if (compat != null) {
+            compat.init();
+        }
     }
 
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (this.toggleBarriersKey.isKeyDown() && !this.keyWasPressed) {
-            toggleBarriers();
+            VisbarrierState.barriersVisible = !VisbarrierState.barriersVisible;
+            if (compat != null) {
+                compat.onBarriersToggled();
+            }
         }
         this.keyWasPressed = this.toggleBarriersKey.isKeyDown();
     }
 
-    private void toggleBarriers() {
-        barriersVisible = !barriersVisible;
-
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.theWorld != null && mc.thePlayer != null) {
-            markChunksForRenderUpdate(mc);
+    private static ICompat loadCompat(String mcVersion) {
+        String className;
+        if (mcVersion.startsWith("1.8")) {
+            className = "io.github.gotmemes.visbarrier.compat.v1_8.Compat_v1_8";
+        } else if (mcVersion.startsWith("1.9") || mcVersion.startsWith("1.10")) {
+            className = "io.github.gotmemes.visbarrier.compat.v1_9.Compat_v1_9";
+        } else if (mcVersion.startsWith("1.11")) {
+            className = "io.github.gotmemes.visbarrier.compat.v1_11.Compat_v1_11";
+        } else if (mcVersion.startsWith("1.12")) {
+            className = "io.github.gotmemes.visbarrier.compat.v1_12.Compat_v1_12";
+        } else {
+            return null;
         }
-
-        if (keybindNotifications && mc.thePlayer != null) {
-            mc.thePlayer.addChatMessage(
-                new ChatComponentText(EnumChatFormatting.RED + I18n.format("message.visbarrier.barriervisibility") + ": " +
-                    (barriersVisible ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on") : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off")))
-            );
+        try {
+            return (ICompat) Class.forName(className).newInstance();
+        } catch (Exception e) {
+            return null;
         }
-    }
-
-    private void markChunksForRenderUpdate(Minecraft mc) {
-        int renderDistance = mc.gameSettings.renderDistanceChunks;
-        int playerChunkX = mc.thePlayer.chunkCoordX;
-        int playerChunkZ = mc.thePlayer.chunkCoordZ;
-
-        mc.theWorld.markBlockRangeForRenderUpdate(
-            (playerChunkX - renderDistance) * 16, 0, (playerChunkZ - renderDistance) * 16,
-            (playerChunkX + renderDistance) * 16 + 15, 255, (playerChunkZ + renderDistance) * 16 + 15
-        );
     }
 }

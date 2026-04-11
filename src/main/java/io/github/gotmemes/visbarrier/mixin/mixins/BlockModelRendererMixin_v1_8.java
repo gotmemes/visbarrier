@@ -1,6 +1,7 @@
 package io.github.gotmemes.visbarrier.mixin.mixins;
 
-import io.github.gotmemes.visbarrier.ctm.BlockPosCapture;
+import io.github.gotmemes.visbarrier.compat.v1_8.BlockPosCapture;
+import io.github.gotmemes.visbarrier.mixin.SupportedVersions;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -13,7 +14,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BlockModelRenderer.class)
-public class BlockModelRendererMixin {
+@SupportedVersions("[1.8,1.9)")
+public class BlockModelRendererMixin_v1_8 {
 
     @Inject(
             method = "renderModel(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/resources/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/BlockPos;Lnet/minecraft/client/renderer/WorldRenderer;Z)Z",
