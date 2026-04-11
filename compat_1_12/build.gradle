@@ -1,0 +1,10 @@
+apply plugin: 'java'
+
+group   = 'io.github.gotmemes.visbarrier'
+version = '0'
+
+sourceCompatibility = targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
