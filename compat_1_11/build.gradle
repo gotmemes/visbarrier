@@ -1,9 +1,27 @@
-apply plugin: 'java'
+buildscript {
+    repositories {
+        maven { url 'https://maven.minecraftforge.net' }
+        maven { url 'https://repo.spongepowered.org/maven' }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2.2'
+    }
+}
 
-group   = 'io.github.gotmemes.visbarrier'
-version = '0'
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+group            = 'io.github.gotmemes.visbarrier'
+archivesBaseName = 'compat_1_11'
+version          = '0'
 
 sourceCompatibility = targetCompatibility = 1.8
+
+minecraft {
+    version          = '1.11.2-13.20.1.2588'
+    runDir           = 'run'
+    mappings         = 'stable_32'
+    makeObfSourceJar = false
+}
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'

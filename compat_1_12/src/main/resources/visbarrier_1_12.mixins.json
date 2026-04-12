@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.7",
+  "compatibilityLevel": "JAVA_8",
+  "package": "io.github.gotmemes.visbarrier.mixin.mixins",
+  "refmap": "visbarrier_1_12.refmap.json",
+  "plugin": "io.github.gotmemes.visbarrier.mixin.VersionedMixinPlugin",
+  "client": [
+    "BlockModelRendererMixin_v1_12"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

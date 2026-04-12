@@ -1,8 +1,8 @@
-package io.github.gotmemes.visbarrier.compat.v1_8;
+package io.github.gotmemes.visbarrier.compat.v1_9;
 
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.IBakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -17,7 +17,7 @@ public class CTMEventHandler {
     @SubscribeEvent
     public void onTextureStitch(TextureStitchEvent.Pre event) {
         for (int i = 0; i < TILE_COUNT; i++) {
-            ctmSprites[i] = event.map.registerSprite(
+            ctmSprites[i] = event.getMap().registerSprite(
                     new ResourceLocation("visbarrier", "blocks/ctm/" + i));
         }
     }
@@ -25,9 +25,9 @@ public class CTMEventHandler {
     @SubscribeEvent
     public void onModelBake(ModelBakeEvent event) {
         ModelResourceLocation barrierMrl = new ModelResourceLocation("minecraft:barrier", "normal");
-        IBakedModel original = event.modelRegistry.getObject(barrierMrl);
+        IBakedModel original = event.getModelRegistry().getObject(barrierMrl);
         if (original != null) {
-            event.modelRegistry.putObject(barrierMrl,
+            event.getModelRegistry().putObject(barrierMrl,
                     new BarrierCTMModel(original, ctmSprites));
         }
     }

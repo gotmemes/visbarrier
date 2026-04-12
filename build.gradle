@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        maven { url 'http://files.minecraftforge.net/maven' }
+        maven { url 'https://maven.minecraftforge.net' }
         maven { url 'https://repo.spongepowered.org/maven' }
     }
     dependencies {
@@ -38,6 +38,29 @@ mixin {
     add sourceSets.main, "${project.mod_id}.refmap.json"
 }
 
+// All compat subprojects are isolated GradleBuild tasks. setupCIWorkspace runs once to
+// populate the forgeBin cache; subsequent builds skip it (up-to-date check on outputs.file).
+task buildCompat1_9(type: GradleBuild) {
+    dir = file('compat_1_9')
+    tasks = ['setupCIWorkspace', 'build']
+    inputs.dir 'compat_1_9/src'
+    outputs.file 'compat_1_9/build/libs/compat_1_9-0.jar'
+}
+
+task buildCompat1_11(type: GradleBuild) {
+    dir = file('compat_1_11')
+    tasks = ['setupCIWorkspace', 'build']
+    inputs.dir 'compat_1_11/src'
+    outputs.file 'compat_1_11/build/libs/compat_1_11-0.jar'
+}
+
+task buildCompat1_12(type: GradleBuild) {
+    dir = file('compat_1_12')
+    tasks = ['setupCIWorkspace', 'build']
+    inputs.dir 'compat_1_12/src'
+    outputs.file 'compat_1_12/build/libs/compat_1_12-0.jar'
+}
+
 configurations {
     embed
     compile.extendsFrom(embed)
@@ -48,9 +71,6 @@ repositories {
 }
 
 dependencies {
-    embed project(':compat_1_9')
-    embed project(':compat_1_11')
-    embed project(':compat_1_12')
     embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         transitive = false
     }
@@ -77,13 +97,19 @@ tasks.withType(JavaExec) {
     outputs.upToDateWhen { false }
 }
 
+afterEvaluate {
+    // FG 2.1.x fetches MC assets over HTTP; the CDN now returns 400 for HTTP requests.
+    // Try both names used across FG 2.x versions. Game runs fine from previously-cached assets.
+    ['getAssets', 'downloadAssets'].each { name -> tasks.findByName(name)?.enabled = false }
+}
+
 jar {
-    dependsOn configurations.embed
+    dependsOn configurations.embed, buildCompat1_9, buildCompat1_11, buildCompat1_12
 
     manifest.attributes(
             'TweakOrder': 0,
             'ModSide': 'CLIENT',
-            'MixinConfigs': "${project.mod_id}.mixins.json",
+            'MixinConfigs': "visbarrier.mixins.json,visbarrier_1_9.mixins.json,visbarrier_1_12.mixins.json",
             'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
             'ForceLoadAsMod': true
     )
@@ -91,6 +117,18 @@ jar {
     from {
         configurations.embed.collect { it.isDirectory() ? fileTree(it) : zipTree(it) }
     } {
+        exclude 'META-INF/*', 'LICENSE.txt', 'dummyThing'
+    }
+
+    from({ zipTree('compat_1_9/build/libs/compat_1_9-0.jar') }) {
+        exclude 'META-INF/*', 'LICENSE.txt', 'dummyThing'
+    }
+
+    from({ zipTree('compat_1_11/build/libs/compat_1_11-0.jar') }) {
+        exclude 'META-INF/*', 'LICENSE.txt', 'dummyThing'
+    }
+
+    from({ zipTree('compat_1_12/build/libs/compat_1_12-0.jar') }) {
         exclude 'META-INF/*', 'LICENSE.txt', 'dummyThing'
     }
 
