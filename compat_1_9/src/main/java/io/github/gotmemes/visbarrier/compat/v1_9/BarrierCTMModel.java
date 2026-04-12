@@ -1,14 +1,16 @@
-package io.github.gotmemes.visbarrier.compat.v1_8;
+package io.github.gotmemes.visbarrier.compat.v1_9;
 
 import io.github.gotmemes.visbarrier.CTMMath;
 import io.github.gotmemes.visbarrier.VisbarrierState;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.IBakedModel;
-import net.minecraft.util.BlockPos;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3i;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
 import java.util.ArrayList;
@@ -34,18 +36,18 @@ public class BarrierCTMModel implements IBakedModel {
     }
 
     @Override
-    public List<BakedQuad> getFaceQuads(EnumFacing side) {
-        if (!VisbarrierState.connectedTextures) {
-            return original.getFaceQuads(side);
+    public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+        if (side == null || !VisbarrierState.connectedTextures) {
+            return original.getQuads(state, side, rand);
         }
 
         BlockPos pos = BlockPosCapture.getPos();
         IBlockAccess world = BlockPosCapture.getWorld();
         if (pos == null || world == null) {
-            return original.getFaceQuads(side);
+            return original.getQuads(state, side, rand);
         }
 
-        boolean[] neighbors = CTMUtil_v1_8.getNeighborFlags(world, pos, side);
+        boolean[] neighbors = CTMUtil_v1_9.getNeighborFlags(world, pos, side);
         int[] tiles = CTMMath.getQuadrantTiles(neighbors);
 
         int key = side.getIndex() * 625 + tiles[0] * 125 + tiles[1] * 25 + tiles[2] * 5 + tiles[3];
@@ -59,17 +61,13 @@ public class BarrierCTMModel implements IBakedModel {
         return existing != null ? existing : quads;
     }
 
-    @Override
-    public List<BakedQuad> getGeneralQuads() {
-        return original.getGeneralQuads();
-    }
-
     @Override public boolean isAmbientOcclusion()            { return original.isAmbientOcclusion(); }
     @Override public boolean isGui3d()                       { return original.isGui3d(); }
     @Override public boolean isBuiltInRenderer()             { return original.isBuiltInRenderer(); }
     @Override public TextureAtlasSprite getParticleTexture() { return original.getParticleTexture(); }
     @Override @SuppressWarnings("deprecation")
     public ItemCameraTransforms getItemCameraTransforms()    { return original.getItemCameraTransforms(); }
+    @Override public ItemOverrideList getOverrides()         { return ItemOverrideList.NONE; }
 
     // -------------------------------------------------------------------------
     // Quad building
@@ -88,7 +86,10 @@ public class BarrierCTMModel implements IBakedModel {
 
     /**
      * Builds a BakedQuad for one quadrant of a face.
-     * Quadrant layout:  0=TL, 1=TR, 2=BL, 3=BR
+     * Quadrant layout: 0=TL, 1=TR, 2=BL, 3=BR
+     *
+     * Vertex format in 1.9+: DefaultVertexFormats.BLOCK = 8 ints/vertex
+     *   [x, y, z, color, u, v, lightmap, normal]
      */
     private static BakedQuad buildQuadrantQuad(EnumFacing face, int quadrant,
                                                 TextureAtlasSprite sprite,
@@ -103,26 +104,18 @@ public class BarrierCTMModel implements IBakedModel {
         float tileVMin = (quadrant >> 1) * 8f;
         float tileVMax = tileVMin + 8f;
 
-        int[] vertexData = new int[28];
+        int[] vertexData = new int[32]; // 8 ints per vertex × 4 vertices
         putVertex(vertexData, 0, face, uMin, vMin, shadeColor, sprite, tileUMin, tileVMin, normal);
         putVertex(vertexData, 1, face, uMin, vMax, shadeColor, sprite, tileUMin, tileVMax, normal);
         putVertex(vertexData, 2, face, uMax, vMax, shadeColor, sprite, tileUMax, tileVMax, normal);
         putVertex(vertexData, 3, face, uMax, vMin, shadeColor, sprite, tileUMax, tileVMin, normal);
 
-        return new BakedQuad(vertexData, -1, face);
+        return new BakedQuad(vertexData, -1, face, sprite, true, DefaultVertexFormats.BLOCK);
     }
 
     /**
-     * Writes one vertex into the 28-int vertex data array.
-     * Vertex layout (7 ints): [x, y, z, shadeColor, u, v, normal]
-     *
-     * Position mapping derived from EnumFaceDirection vertex data:
-     *   DOWN  V0=(0,0,1) uDir=+X vDir=-Z → x=u,   y=0,   z=1-v
-     *   UP    V0=(0,1,0) uDir=+X vDir=+Z → x=u,   y=1,   z=v
-     *   NORTH V0=(1,1,0) uDir=-X vDir=-Y → x=1-u, y=1-v, z=0
-     *   SOUTH V0=(0,1,1) uDir=+X vDir=-Y → x=u,   y=1-v, z=1
-     *   WEST  V0=(0,1,0) uDir=+Z vDir=-Y → x=0,   y=1-v, z=u
-     *   EAST  V0=(1,1,1) uDir=-Z vDir=-Y → x=1,   y=1-v, z=1-u
+     * Writes one vertex into the 32-int vertex data array (8 ints per vertex for 1.9+).
+     * Layout: [x, y, z, shadeColor, u, v, lightmap, normal]
      */
     private static void putVertex(int[] data, int index, EnumFacing face,
                                    float u, float v, int color,
@@ -137,14 +130,15 @@ public class BarrierCTMModel implements IBakedModel {
             case EAST:  x = 1f;    y = 1f-v;  z = 1f-u;   break;
             default:    x = y = z = 0f;
         }
-        int i = index * 7;
+        int i = index * 8;
         data[i]     = Float.floatToRawIntBits(x);
         data[i + 1] = Float.floatToRawIntBits(y);
         data[i + 2] = Float.floatToRawIntBits(z);
         data[i + 3] = color;
         data[i + 4] = Float.floatToRawIntBits(sprite.getInterpolatedU(texU));
         data[i + 5] = Float.floatToRawIntBits(sprite.getInterpolatedV(texV));
-        data[i + 6] = normal;
+        data[i + 6] = 0; // lightmap: not baked, will be computed per-vertex at render time
+        data[i + 7] = normal;
     }
 
     // -------------------------------------------------------------------------
@@ -166,10 +160,9 @@ public class BarrierCTMModel implements IBakedModel {
 
     /** Packs the face normal as 3 signed bytes (x,y,z) × 127, packed x|(y<<8)|(z<<16). */
     private static int computeNormal(EnumFacing face) {
-        Vec3i dir = face.getDirectionVec();
-        int nx = ((byte)(dir.getX() * 127)) & 0xFF;
-        int ny = ((byte)(dir.getY() * 127)) & 0xFF;
-        int nz = ((byte)(dir.getZ() * 127)) & 0xFF;
+        int nx = ((byte)(face.getFrontOffsetX() * 127)) & 0xFF;
+        int ny = ((byte)(face.getFrontOffsetY() * 127)) & 0xFF;
+        int nz = ((byte)(face.getFrontOffsetZ() * 127)) & 0xFF;
         return nx | (ny << 8) | (nz << 16);
     }
 }

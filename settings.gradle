@@ -1,1 +1,3 @@
-include 'compat_1_9', 'compat_1_11', 'compat_1_12'
+// All three compat subprojects are built as isolated GradleBuild tasks (see build.gradle).
+// compat_1_9 uses FG 2.1.3, compat_1_11 uses FG 2.2.2, compat_1_12 uses FG 2.3.4.
+// Isolating them prevents their runClient tasks from appearing in the root build's task graph.
