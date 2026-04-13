@@ -16,6 +16,7 @@ public class CTMEventHandler {
 
     @SubscribeEvent
     public void onTextureStitch(TextureStitchEvent.Pre event) {
+        event.map.registerSprite(new ResourceLocation("minecraft", "blocks/barrier"));
         for (int i = 0; i < TILE_COUNT; i++) {
             ctmSprites[i] = event.map.registerSprite(
                     new ResourceLocation("visbarrier", "blocks/ctm/" + i));
@@ -26,9 +27,14 @@ public class CTMEventHandler {
     public void onModelBake(ModelBakeEvent event) {
         ModelResourceLocation barrierMrl = new ModelResourceLocation("minecraft:barrier", "normal");
         IBakedModel original = event.modelRegistry.getObject(barrierMrl);
-        if (original != null) {
-            event.modelRegistry.putObject(barrierMrl,
-                    new BarrierCTMModel(original, ctmSprites));
+        if (original == null) return;
+
+        TextureAtlasSprite particle = original.getParticleTexture();
+        if (particle != null && !"minecraft:blocks/barrier".equals(particle.getIconName())
+                             && !"minecraft:items/barrier".equals(particle.getIconName())) {
+            return;
         }
+
+        event.modelRegistry.putObject(barrierMrl, new BarrierCTMModel(original, ctmSprites));
     }
 }

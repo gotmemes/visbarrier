@@ -9,7 +9,8 @@
     "BarrierMixin_v1_9_4",
     "BarrierMixin_v1_12",
     "BlockBarrierMixin_v1_9",
-    "BlockModelRendererMixin_v1_9"
+    "BlockModelRendererMixin_v1_9",
+    "BlockStateMapperMixin_v1_9"
   ],
   "injectors": {
     "defaultRequire": 1
