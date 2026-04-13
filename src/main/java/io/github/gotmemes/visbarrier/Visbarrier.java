@@ -33,8 +33,6 @@ public class Visbarrier {
             "key.category.visbarrier"
     );
 
-    private boolean keyWasPressed = false;
-
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         VisbarrierConfig.init(event.getSuggestedConfigurationFile());
@@ -54,13 +52,12 @@ public class Visbarrier {
 
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
-        if (this.toggleBarriersKey.isKeyDown() && !this.keyWasPressed) {
+        if (this.toggleBarriersKey.isPressed()) {
             VisbarrierState.barriersVisible = !VisbarrierState.barriersVisible;
             if (compat != null) {
                 compat.onBarriersToggled();
             }
         }
-        this.keyWasPressed = this.toggleBarriersKey.isKeyDown();
     }
 
     private static ICompat loadCompat(String mcVersion) {

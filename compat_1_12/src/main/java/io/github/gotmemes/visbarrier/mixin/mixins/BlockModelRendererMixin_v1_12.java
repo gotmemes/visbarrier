@@ -17,24 +17,50 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @SupportedVersions("[1.12,)")
 public class BlockModelRendererMixin_v1_12 {
 
+    // Forge 1.12 split renderModel into renderModelSmooth + renderModelFlat
+    // (both Forge-added, keep their MCP names at runtime). Injecting here puts
+    // the capture on the same stack frame as model.getQuads(), guaranteeing the
+    // ThreadLocal is populated when BarrierCTMModel.getQuads reads it.
+
     @Inject(
-            method = "renderModel(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;Z)Z",
+            method = "renderModelSmooth(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z",
             at = @At("HEAD")
     )
-    private void captureBlockPos(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn,
-                                  BlockPos posIn, BufferBuilder bufferIn, boolean checkSides,
-                                  CallbackInfoReturnable<Boolean> cir) {
+    private void captureBlockPosSmooth(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn,
+                                        BlockPos posIn, BufferBuilder bufferIn, boolean checkSides,
+                                        long rand, CallbackInfoReturnable<Boolean> cir) {
         BlockPosCapture.clear();
         BlockPosCapture.set(posIn, worldIn);
     }
 
     @Inject(
-            method = "renderModel(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;Z)Z",
+            method = "renderModelSmooth(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z",
             at = @At("RETURN")
     )
-    private void clearBlockPos(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn,
-                                BlockPos posIn, BufferBuilder bufferIn, boolean checkSides,
-                                CallbackInfoReturnable<Boolean> cir) {
+    private void clearBlockPosSmooth(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn,
+                                      BlockPos posIn, BufferBuilder bufferIn, boolean checkSides,
+                                      long rand, CallbackInfoReturnable<Boolean> cir) {
+        BlockPosCapture.clear();
+    }
+
+    @Inject(
+            method = "renderModelFlat(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z",
+            at = @At("HEAD")
+    )
+    private void captureBlockPosFlat(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn,
+                                      BlockPos posIn, BufferBuilder bufferIn, boolean checkSides,
+                                      long rand, CallbackInfoReturnable<Boolean> cir) {
+        BlockPosCapture.clear();
+        BlockPosCapture.set(posIn, worldIn);
+    }
+
+    @Inject(
+            method = "renderModelFlat(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z",
+            at = @At("RETURN")
+    )
+    private void clearBlockPosFlat(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn,
+                                    BlockPos posIn, BufferBuilder bufferIn, boolean checkSides,
+                                    long rand, CallbackInfoReturnable<Boolean> cir) {
         BlockPosCapture.clear();
     }
 }
