@@ -31,21 +31,22 @@ public final class CTMMath {
     public static final int BOTTOM_LEFT  = 7;
 
     /**
-     * Returns the tile index for each of the 4 quadrants [TL, TR, BL, BR].
+     * Returns the tile index for one quadrant, reading the three relevant neighbour bits out of a
+     * packed neighbour mask (bit positions are the RIGHT/LEFT/UP/DOWN/diagonal constants above).
      *
      * Quadrant layout in UV space (u=0 is left, v=0 is top):
-     *   TL: checks LEFT  + UP   + TOP_LEFT
-     *   TR: checks RIGHT + UP   + TOP_RIGHT
-     *   BL: checks LEFT  + DOWN + BOTTOM_LEFT
-     *   BR: checks RIGHT + DOWN + BOTTOM_RIGHT
+     *   TL: tile(mask, LEFT,  UP,   TOP_LEFT)
+     *   TR: tile(mask, RIGHT, UP,   TOP_RIGHT)
+     *   BL: tile(mask, LEFT,  DOWN, BOTTOM_LEFT)
+     *   BR: tile(mask, RIGHT, DOWN, BOTTOM_RIGHT)
+     *
+     * Replaces the old boolean[]/int[] form so the render hot path allocates nothing per face.
      */
-    public static int[] getQuadrantTiles(boolean[] n) {
-        int[] tiles = new int[4];
-        tiles[0] = getTile(n[LEFT],  n[UP],   n[TOP_LEFT]);
-        tiles[1] = getTile(n[RIGHT], n[UP],   n[TOP_RIGHT]);
-        tiles[2] = getTile(n[LEFT],  n[DOWN], n[BOTTOM_LEFT]);
-        tiles[3] = getTile(n[RIGHT], n[DOWN], n[BOTTOM_RIGHT]);
-        return tiles;
+    public static int tile(int neighbourMask, int horizBit, int vertBit, int diagBit) {
+        return getTile(
+                (neighbourMask & (1 << horizBit)) != 0,
+                (neighbourMask & (1 << vertBit))  != 0,
+                (neighbourMask & (1 << diagBit))  != 0);
     }
 
     public static int getTile(boolean horiz, boolean vert, boolean diagonal) {

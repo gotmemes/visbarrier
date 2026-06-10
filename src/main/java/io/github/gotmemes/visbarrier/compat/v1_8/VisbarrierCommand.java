@@ -44,7 +44,7 @@ public class VisbarrierCommand extends CommandBase {
 
             if (mc.thePlayer != null) {
                 mc.thePlayer.addChatMessage(new ChatComponentText(
-                    EnumChatFormatting.RED + I18n.format("message.visbarrier.connectedtextures") + ": " +
+                    EnumChatFormatting.RED + "[Visbarrier] " + I18n.format("message.visbarrier.connectedtextures") + ": " +
                     (VisbarrierState.connectedTextures
                         ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
                         : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))
@@ -57,7 +57,7 @@ public class VisbarrierCommand extends CommandBase {
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.thePlayer != null) {
                 mc.thePlayer.addChatMessage(new ChatComponentText(
-                    EnumChatFormatting.RED + I18n.format("message.visbarrier.keybindnotifications") + ": " +
+                    EnumChatFormatting.RED + "[Visbarrier] " + I18n.format("message.visbarrier.keybindnotifications") + ": " +
                     (VisbarrierState.keybindNotifications
                         ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
                         : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))
@@ -65,7 +65,7 @@ public class VisbarrierCommand extends CommandBase {
             }
         } else {
             sender.addChatMessage(new ChatComponentText(
-                EnumChatFormatting.RED + I18n.format("message.visbarrier.usage") + " " + getCommandUsage(sender)
+                EnumChatFormatting.RED + "[Visbarrier] " + I18n.format("message.visbarrier.usage") + " " + getCommandUsage(sender)
             ));
         }
     }

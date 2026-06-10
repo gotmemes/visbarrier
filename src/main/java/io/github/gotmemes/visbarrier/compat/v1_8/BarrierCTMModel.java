@@ -14,7 +14,7 @@ import net.minecraft.world.IBlockAccess;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class BarrierCTMModel implements IBakedModel {
 
@@ -22,11 +22,12 @@ public class BarrierCTMModel implements IBakedModel {
     private final TextureAtlasSprite[] ctmSprites;
 
     /**
-     * Cache: maps (face × tile combo) → immutable list of 4 BakedQuads.
-     * Key = face.getIndex() * 625 + tl*125 + tr*25 + bl*5 + br.
-     * At most 6 × 5^4 = 3750 entries. Lazily populated, thread-safe.
+     * Cache indexed by (face × tile combo): key = face.getIndex() * 625 + tl*125 + tr*25 + bl*5 + br,
+     * in [0, 3750). A flat lock-free array — chunk meshing runs on several worker threads, reference
+     * writes are atomic, and quad lists are immutable + recomputed identically, so a benign duplicate
+     * build on a race is harmless. Avoids the per-face Integer boxing + hashing of a ConcurrentHashMap.
      */
-    private final ConcurrentHashMap<Integer, List<BakedQuad>> quadCache = new ConcurrentHashMap<>();
+    private final AtomicReferenceArray<List<BakedQuad>> quadCache = new AtomicReferenceArray<>(6 * 625);
 
     public BarrierCTMModel(IBakedModel original, TextureAtlasSprite[] ctmSprites) {
         this.original = original;
@@ -45,18 +46,27 @@ public class BarrierCTMModel implements IBakedModel {
             return original.getFaceQuads(side);
         }
 
-        boolean[] neighbors = CTMUtil_v1_8.getNeighborFlags(world, pos, side);
-        int[] tiles = CTMMath.getQuadrantTiles(neighbors);
+        // Neighbourhood is computed once per block (on the first face) and reused for the other five.
+        int neighbourhood = BlockPosCapture.getNeighbourhood();
+        if (neighbourhood == -1) {
+            neighbourhood = CTMUtil_v1_8.computeNeighbourhood(world, pos);
+            BlockPosCapture.setNeighbourhood(neighbourhood);
+        }
+        int n = CTMUtil_v1_8.faceFlags(neighbourhood, side);
 
-        int key = side.getIndex() * 625 + tiles[0] * 125 + tiles[1] * 25 + tiles[2] * 5 + tiles[3];
+        int tl = CTMMath.tile(n, CTMMath.LEFT,  CTMMath.UP,   CTMMath.TOP_LEFT);
+        int tr = CTMMath.tile(n, CTMMath.RIGHT, CTMMath.UP,   CTMMath.TOP_RIGHT);
+        int bl = CTMMath.tile(n, CTMMath.LEFT,  CTMMath.DOWN, CTMMath.BOTTOM_LEFT);
+        int br = CTMMath.tile(n, CTMMath.RIGHT, CTMMath.DOWN, CTMMath.BOTTOM_RIGHT);
+
+        int key = side.getIndex() * 625 + tl * 125 + tr * 25 + bl * 5 + br;
         List<BakedQuad> cached = quadCache.get(key);
         if (cached != null) {
             return cached;
         }
 
-        List<BakedQuad> quads = buildQuads(side, tiles);
-        List<BakedQuad> existing = quadCache.putIfAbsent(key, quads);
-        return existing != null ? existing : quads;
+        List<BakedQuad> quads = buildQuads(side, tl, tr, bl, br);
+        return quadCache.compareAndSet(key, null, quads) ? quads : quadCache.get(key);
     }
 
     @Override
@@ -75,14 +85,15 @@ public class BarrierCTMModel implements IBakedModel {
     // Quad building
     // -------------------------------------------------------------------------
 
-    private List<BakedQuad> buildQuads(EnumFacing face, int[] tiles) {
+    private List<BakedQuad> buildQuads(EnumFacing face, int tl, int tr, int bl, int br) {
         int shadeColor = computeShadeColor(face);
         int normal     = computeNormal(face);
 
         List<BakedQuad> quads = new ArrayList<>(4);
-        for (int qi = 0; qi < 4; qi++) {
-            quads.add(buildQuadrantQuad(face, qi, ctmSprites[tiles[qi]], shadeColor, normal));
-        }
+        quads.add(buildQuadrantQuad(face, 0, ctmSprites[tl], shadeColor, normal)); // TL
+        quads.add(buildQuadrantQuad(face, 1, ctmSprites[tr], shadeColor, normal)); // TR
+        quads.add(buildQuadrantQuad(face, 2, ctmSprites[bl], shadeColor, normal)); // BL
+        quads.add(buildQuadrantQuad(face, 3, ctmSprites[br], shadeColor, normal)); // BR
         return Collections.unmodifiableList(quads);
     }
 

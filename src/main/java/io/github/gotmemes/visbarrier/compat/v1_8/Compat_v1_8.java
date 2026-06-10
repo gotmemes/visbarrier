@@ -25,7 +25,7 @@ public class Compat_v1_8 implements ICompat {
         }
         if (VisbarrierState.keybindNotifications && mc.thePlayer != null) {
             mc.thePlayer.addChatMessage(new ChatComponentText(
-                EnumChatFormatting.RED + I18n.format("message.visbarrier.barriervisibility") + ": " +
+                EnumChatFormatting.RED + "[Visbarrier] " + I18n.format("message.visbarrier.barriervisibility") + ": " +
                 (VisbarrierState.barriersVisible
                     ? EnumChatFormatting.GREEN + I18n.format("message.visbarrier.on")
                     : EnumChatFormatting.WHITE + I18n.format("message.visbarrier.off"))

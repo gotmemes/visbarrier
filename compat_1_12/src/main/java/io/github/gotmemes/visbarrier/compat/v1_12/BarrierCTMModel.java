@@ -16,14 +16,26 @@ import net.minecraft.world.IBlockAccess;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class BarrierCTMModel implements IBakedModel {
 
     private final IBakedModel original;
     private final TextureAtlasSprite[] ctmSprites;
 
-    private final ConcurrentHashMap<Integer, List<BakedQuad>> quadCache = new ConcurrentHashMap<>();
+    /**
+     * Cache indexed by (face × tile combo): key = face.getIndex() * 625 + tl*125 + tr*25 + bl*5 + br,
+     * in [0, 3750). A flat lock-free array — chunk meshing runs on several worker threads, reference
+     * writes are atomic, and quad lists are immutable + recomputed identically, so a benign duplicate
+     * build on a race is harmless. Avoids the per-face Integer boxing + hashing of a ConcurrentHashMap.
+     */
+    private final AtomicReferenceArray<List<BakedQuad>> quadCache = new AtomicReferenceArray<>(6 * 625);
+
+    // TEMP DIAGNOSTIC (remove once 1.12 CTM is verified): fire once each so the log shows whether the
+    // connected-texture path actually engages, or whether BlockPosCapture is empty and we fall back.
+    private static final AtomicBoolean LOGGED_ENGAGED  = new AtomicBoolean(false);
+    private static final AtomicBoolean LOGGED_FALLBACK = new AtomicBoolean(false);
 
     public BarrierCTMModel(IBakedModel original, TextureAtlasSprite[] ctmSprites) {
         this.original = original;
@@ -39,21 +51,38 @@ public class BarrierCTMModel implements IBakedModel {
         BlockPos pos = BlockPosCapture.getPos();
         IBlockAccess world = BlockPosCapture.getWorld();
         if (pos == null || world == null) {
+            if (LOGGED_FALLBACK.compareAndSet(false, true)) {
+                System.out.println("[Visbarrier][diag] 1.12 CTM FALLBACK: BlockPosCapture empty (pos/world null) "
+                        + "-> connected textures NOT applied (barrier renders plain). Capture mixin did not fire.");
+            }
             return original.getQuads(state, side, rand);
         }
 
-        boolean[] neighbors = CTMUtil_v1_12.getNeighborFlags(world, pos, side);
-        int[] tiles = CTMMath.getQuadrantTiles(neighbors);
+        if (LOGGED_ENGAGED.compareAndSet(false, true)) {
+            System.out.println("[Visbarrier][diag] 1.12 CTM ENGAGED: BlockPosCapture populated "
+                    + "-> building connected-texture quads.");
+        }
 
-        int key = side.getIndex() * 625 + tiles[0] * 125 + tiles[1] * 25 + tiles[2] * 5 + tiles[3];
+        int neighbourhood = BlockPosCapture.getNeighbourhood();
+        if (neighbourhood == -1) {
+            neighbourhood = CTMUtil_v1_12.computeNeighbourhood(world, pos);
+            BlockPosCapture.setNeighbourhood(neighbourhood);
+        }
+        int n = CTMUtil_v1_12.faceFlags(neighbourhood, side);
+
+        int tl = CTMMath.tile(n, CTMMath.LEFT,  CTMMath.UP,   CTMMath.TOP_LEFT);
+        int tr = CTMMath.tile(n, CTMMath.RIGHT, CTMMath.UP,   CTMMath.TOP_RIGHT);
+        int bl = CTMMath.tile(n, CTMMath.LEFT,  CTMMath.DOWN, CTMMath.BOTTOM_LEFT);
+        int br = CTMMath.tile(n, CTMMath.RIGHT, CTMMath.DOWN, CTMMath.BOTTOM_RIGHT);
+
+        int key = side.getIndex() * 625 + tl * 125 + tr * 25 + bl * 5 + br;
         List<BakedQuad> cached = quadCache.get(key);
         if (cached != null) {
             return cached;
         }
 
-        List<BakedQuad> quads = buildQuads(side, tiles);
-        List<BakedQuad> existing = quadCache.putIfAbsent(key, quads);
-        return existing != null ? existing : quads;
+        List<BakedQuad> quads = buildQuads(side, tl, tr, bl, br);
+        return quadCache.compareAndSet(key, null, quads) ? quads : quadCache.get(key);
     }
 
     @Override public boolean isAmbientOcclusion()            { return original.isAmbientOcclusion(); }
@@ -64,14 +93,15 @@ public class BarrierCTMModel implements IBakedModel {
     public ItemCameraTransforms getItemCameraTransforms()    { return original.getItemCameraTransforms(); }
     @Override public ItemOverrideList getOverrides()         { return ItemOverrideList.NONE; }
 
-    private List<BakedQuad> buildQuads(EnumFacing face, int[] tiles) {
+    private List<BakedQuad> buildQuads(EnumFacing face, int tl, int tr, int bl, int br) {
         int shadeColor = computeShadeColor(face);
         int normal     = computeNormal(face);
 
         List<BakedQuad> quads = new ArrayList<>(4);
-        for (int qi = 0; qi < 4; qi++) {
-            quads.add(buildQuadrantQuad(face, qi, ctmSprites[tiles[qi]], shadeColor, normal));
-        }
+        quads.add(buildQuadrantQuad(face, 0, ctmSprites[tl], shadeColor, normal)); // TL
+        quads.add(buildQuadrantQuad(face, 1, ctmSprites[tr], shadeColor, normal)); // TR
+        quads.add(buildQuadrantQuad(face, 2, ctmSprites[bl], shadeColor, normal)); // BL
+        quads.add(buildQuadrantQuad(face, 3, ctmSprites[br], shadeColor, normal)); // BR
         return Collections.unmodifiableList(quads);
     }
 
@@ -94,7 +124,10 @@ public class BarrierCTMModel implements IBakedModel {
         putVertex(vertexData, 2, face, uMax, vMax, shadeColor, sprite, tileUMax, tileVMax, normal);
         putVertex(vertexData, 3, face, uMax, vMin, shadeColor, sprite, tileUMax, tileVMin, normal);
 
-        return new BakedQuad(vertexData, -1, face, sprite, true, DefaultVertexFormats.BLOCK);
+        // applyDiffuseLighting=false: the 0.5/0.6/0.8/1.0 face shade is already baked into the vertex
+        // colour by computeShadeColor() (matching the working 1.8 path). Letting Forge's lighting
+        // pipeline ALSO apply diffuse would shade each face twice (e.g. bottom 0.5*0.5=0.25 -> too dark).
+        return new BakedQuad(vertexData, -1, face, sprite, false, DefaultVertexFormats.BLOCK);
     }
 
     private static void putVertex(int[] data, int index, EnumFacing face,
